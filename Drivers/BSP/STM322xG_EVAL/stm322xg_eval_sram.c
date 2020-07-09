@@ -259,9 +259,15 @@ __weak void BSP_SRAM_MspInit(void)
   HAL_GPIO_Init(GPIOD, &GPIO_Init_Structure);
 
   /* GPIOE configuration */  
+#if defined(STM32_ENABLE_TRACE)
+  GPIO_Init_Structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_7     |\
+                              GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12 |\
+                              GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15;
+#else
   GPIO_Init_Structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_3| GPIO_PIN_4 | GPIO_PIN_7     |\
                               GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12 |\
                               GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15;
+#endif /* defined(STM32_ENABLE_TRACE) */
   HAL_GPIO_Init(GPIOE, &GPIO_Init_Structure);
   
   /* GPIOF configuration */  
