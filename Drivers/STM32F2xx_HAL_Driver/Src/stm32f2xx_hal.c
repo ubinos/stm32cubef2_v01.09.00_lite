@@ -240,6 +240,11 @@ __weak void HAL_MspDeInit(void)
 
 #if defined(UBINOS_PRESENT)
 
+__weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
+{
+	return HAL_OK;
+}
+
 /**
   * @brief Provides a tick value in millisecond.
   * @note This function is declared as __weak to be overwritten in case of other

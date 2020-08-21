@@ -90,6 +90,12 @@ void RTC_WKUP_IRQHandler(void);
 
 /* Private functions ---------------------------------------------------------*/
 
+#if defined(UBINOS_PRESENT)
+
+	#error "Not yet supported"
+
+#else /* defined(UBINOS_PRESENT) */
+
 /**
   * @brief  This function configures the RTC_WKUP as a time base source. 
   *         The time source is configured  to have 1ms time base with a dedicated 
@@ -218,6 +224,8 @@ HAL_StatusTypeDef HAL_InitTick (uint32_t TickPriority)
   }
   return HAL_ERROR;
 }
+
+#endif /* defined(UBINOS_PRESENT) */
 
 /**
   * @brief  Suspend Tick increment.
