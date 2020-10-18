@@ -18,6 +18,10 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#if defined(UBINOS_PRESENT)
+#include <ubinos/bsp.h>
+#endif
+
 #include "stm32f2xx_ll_utils.h"
 #include "stm32f2xx_ll_rcc.h"
 #include "stm32f2xx_ll_system.h"
@@ -218,6 +222,12 @@ void LL_Init1msTick(uint32_t HCLKFrequency)
   */
 void LL_mDelay(uint32_t Delay)
 {
+#if defined(UBINOS_PRESENT)
+
+  bsp_busywait(bsp_timemstobwc(Delay));
+
+#else
+
   __IO uint32_t  tmp = SysTick->CTRL;  /* Clear the COUNTFLAG first */
   /* Add this code to indicate that local variable is not used */
   ((void)tmp);
@@ -235,6 +245,8 @@ void LL_mDelay(uint32_t Delay)
       Delay--;
     }
   }
+
+#endif /* defined(UBINOS_PRESENT) */
 }
 
 /**
