@@ -170,14 +170,14 @@ HAL_StatusTypeDef HAL_Init(void)
 #endif /* PREFETCH_ENABLE */
 #endif /* defined(UBINOS_BSP_PRESENT) */
 
-#if defined(UBINOS_PRESENT)
+#if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
 #else
   /* Set Interrupt Group Priority */
   HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
   /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
   HAL_InitTick(TICK_INT_PRIORITY);
-#endif /* defined(UBINOS_PRESENT) */
+#endif /* defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1) */
 
   /* Init the low level hardware */
   HAL_MspInit();
@@ -238,35 +238,6 @@ __weak void HAL_MspDeInit(void)
    */ 
 }
 
-#if defined(UBINOS_PRESENT)
-
-__weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
-{
-	return HAL_OK;
-}
-
-/**
-  * @brief Provides a tick value in millisecond.
-  * @note This function is declared as __weak to be overwritten in case of other
-  *       implementations in user file.
-  * @retval tick value
-  */
-__weak uint32_t HAL_GetTick(void)
-{
-  return ubik_gettickcount().low;
-}
-
-/**
-  * @brief Return tick frequency.
-  * @retval tick period in Hz
-  */
-HAL_TickFreqTypeDef HAL_GetTickFreq(void)
-{
-  return max(1, 1000 / ubik_gettickpersec());
-}
-
-#else /* defined(UBINOS_PRESENT) */
-
 /**
   * @brief This function configures the source of the time base.
   *        The time source is configured  to have 1ms time base with a dedicated 
@@ -285,6 +256,9 @@ HAL_TickFreqTypeDef HAL_GetTickFreq(void)
   */
 __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
+#if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
+  return HAL_OK;
+#else
   /* Configure the SysTick to have interrupt in 1ms time basis*/
   if (HAL_SYSTICK_Config(SystemCoreClock / (1000U / uwTickFreq)) > 0U)
   {
@@ -304,6 +278,7 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 
   /* Return function status */
   return HAL_OK;
+#endif /* defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1) */
 }
 
 /**
@@ -344,7 +319,10 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   */
 __weak void HAL_IncTick(void)
 {
+#if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
+#else
   uwTick += uwTickFreq;
+#endif /* defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1) */
 }
 
 /**
@@ -355,7 +333,11 @@ __weak void HAL_IncTick(void)
   */
 __weak uint32_t HAL_GetTick(void)
 {
+#if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
+  return ubik_gettickcount().low;
+#else
   return uwTick;
+#endif /* defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1) */
 }
 
 /**
@@ -364,6 +346,11 @@ __weak uint32_t HAL_GetTick(void)
   */
 uint32_t HAL_GetTickPrio(void)
 {
+#if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
+  // Not supported
+  ubi_assert(0);
+#else
+#endif /* defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1) */
   return uwTickPrio;
 }
 
@@ -373,6 +360,11 @@ uint32_t HAL_GetTickPrio(void)
   */
 HAL_StatusTypeDef HAL_SetTickFreq(HAL_TickFreqTypeDef Freq)
 {
+#if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
+  // Not supported
+  ubi_assert(0);
+  return HAL_ERROR;
+#else
   HAL_StatusTypeDef status  = HAL_OK;
   assert_param(IS_TICKFREQ(Freq));
 
@@ -387,6 +379,7 @@ HAL_StatusTypeDef HAL_SetTickFreq(HAL_TickFreqTypeDef Freq)
   }
 
   return status;
+#endif /* defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1) */
 }
 
 /**
@@ -395,10 +388,12 @@ HAL_StatusTypeDef HAL_SetTickFreq(HAL_TickFreqTypeDef Freq)
   */
 HAL_TickFreqTypeDef HAL_GetTickFreq(void)
 {
+#if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
+  return max(1, 1000 / ubik_gettickpersec());
+#else
   return uwTickFreq;
+#endif /* defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1) */
 }
-
-#endif /* defined(UBINOS_PRESENT) */
 
 /**
   * @brief This function provides minimum delay (in milliseconds) based 
@@ -439,8 +434,13 @@ __weak void HAL_Delay(__IO uint32_t Delay)
   */
 __weak void HAL_SuspendTick(void)
 {
+#if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
+  // Not supported
+  ubi_assert(0);
+#else
   /* Disable SysTick Interrupt */
   SysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;
+#endif /* defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1) */
 }
 
 /**
@@ -455,8 +455,13 @@ __weak void HAL_SuspendTick(void)
   */
 __weak void HAL_ResumeTick(void)
 {
+#if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
+  // Not supported
+  ubi_assert(0);
+#else
   /* Enable SysTick Interrupt */
   SysTick->CTRL  |= SysTick_CTRL_TICKINT_Msk;
+#endif /* defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1) */
 }
 
 /**
