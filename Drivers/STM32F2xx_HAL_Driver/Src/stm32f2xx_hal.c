@@ -154,7 +154,7 @@ HAL_TickFreqTypeDef uwTickFreq = HAL_TICK_FREQ_DEFAULT;  /* 1KHz */
   */
 HAL_StatusTypeDef HAL_Init(void)
 {
-#if defined(UBINOS_BSP_PRESENT)
+#if defined(UBINOS_PRESENT)
 #else
   /* Configure Flash prefetch, Instruction cache, Data cache */ 
 #if (INSTRUCTION_CACHE_ENABLE != 0U)
@@ -168,7 +168,7 @@ HAL_StatusTypeDef HAL_Init(void)
 #if (PREFETCH_ENABLE != 0U)
   __HAL_FLASH_PREFETCH_BUFFER_ENABLE();
 #endif /* PREFETCH_ENABLE */
-#endif /* defined(UBINOS_BSP_PRESENT) */
+#endif /* defined(UBINOS_PRESENT) */
 
 #if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
 #else
@@ -414,7 +414,11 @@ __weak void HAL_Delay(__IO uint32_t Delay)
   /* Add a freq to guarantee minimum wait */
   if (wait < HAL_MAX_DELAY)
   {
+#if defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1)
     wait += (uint32_t)(HAL_GetTickFreq());
+#else
+    wait += (uint32_t)(uwTickFreq);
+#endif /* defined(UBINOS_PRESENT) && (STM32CUBEF2__USE_HAL_WITH_UBINOS_TICK == 1) */
   }
 
   while ((HAL_GetTick() - tickstart) < wait)
